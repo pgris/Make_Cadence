@@ -54,7 +54,7 @@ if opts.runtype.count('Simulation') > 0 or opts.runtype.count('Rolling') > 0:
 
             name_id=common_info+'_'+str(zmin)+'_'+str(zmax)+'_'+str(opts.nevts)+'_season_'+str(opts.season)
             log = dirLog + '/'+name_id+'.log'
-            qsub = "qsub -P P_lsst -l sps=1,ct=180000,h_vmem=16G -j y -o "+ log + " <<EOF"
+            qsub = "qsub -P P_lsst -l sps=1,ct=120000,h_vmem=16G -j y -o "+ log + " <<EOF"
             scriptName = dirScript+'/'+name_id+'.sh'
 
             script = open(scriptName,"w")

@@ -15,21 +15,23 @@ export LSSTSW=/sps/lsst/Library/new/lsstsw
 export EUPS_PATH=$LSSTSW/stack
 source $LSSTSW/bin/setup.sh
 
-export PYTHONPATH=../lib/python2.7/site-packages:$PYTHONPATH
+dir_tag=/sps/lsst/data/dev/pgris/sims_operations
 
-setup -k -r ../pykg_config
-#setup -k -r ../healpy
-setup -k -r ../python_future
-setup -k -r ../sims_data
-setup -k -r ../sims_utils
-#setup -k -r ../sims_catalogs_generation
-setup -k -r ../sims_sed_library
-setup -k -r ../sims_dustmaps
-setup -k -r ../throughputs
-setup -k -r ../sims_maps
-setup -k -r ../sims_photUtils
-setup -k -r ../sims_coordUtils
-setup -k -r ../sqlalchemy
-setup -k -r ../sims_catalogs
-setup -k -r ../sims_maf
+export PYTHONPATH=${dir_tag}/lib/python2.7/site-packages:$PYTHONPATH
+
+setup -k -r ${dir_tag}/pykg_config
+#setup -k -r ${dir_tag}/healpy
+setup -k -r ${dir_tag}/python_future
+setup -k -r ${dir_tag}/sims_data
+setup -k -r ${dir_tag}/sims_utils
+#setup -k -r ${dir_tag}/sims_catalogs_generation
+setup -k -r ${dir_tag}/sims_sed_library
+setup -k -r ${dir_tag}/sims_dustmaps
+setup -k -r ${dir_tag}/throughputs
+setup -k -r ${dir_tag}/sims_maps
+setup -k -r ${dir_tag}/sims_photUtils
+setup -k -r ${dir_tag}/sims_coordUtils
+setup -k -r ${dir_tag}/sqlalchemy
+setup -k -r ${dir_tag}/sims_catalogs
+setup -k -r ${dir_tag}/sims_maf
 #setup -k -r ../sims_operations

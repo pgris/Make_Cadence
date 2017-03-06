@@ -25,7 +25,7 @@ opts, args = parser.parse_args()
 outDir ='Test'
 
 #dbFile = '/data/pgris/sims_operation/Run_OpSim/enigma_1189_sqlite.db'
-dbFile = '../DB_Files/'+opts.opsimrun+'_sqlite.db'
+dbFile = '/sps/lsst/data/dev/pgris/sims_operations/DB_Files/'+opts.opsimrun+'_sqlite.db'
 #dbFile = '/data/pgris/sims_operation/Run_OpSim/clrlsstsrv_1068_sqlite.db'
 opsimdb = utils.connectOpsimDb(dbFile)
 resultsDb = db.ResultsDb(outDir=outDir)

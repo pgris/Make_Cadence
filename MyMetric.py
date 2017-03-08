@@ -8,7 +8,7 @@ from astropy.table import vstack,Table
 import astropy.units as u
 import matplotlib.pyplot as plt
 from lsst.sims.photUtils.EBV import EBVbase
-from lsst.sims.photUtils import Bandpass
+from lsst.sims.photUtils import Bandpass,Sed
 import math
 import time
 
@@ -550,9 +550,10 @@ class AnaMetric(BaseMetric):
         table_for_fit['error_coadd_calc'] = Table(names=('time','flux','fluxerr','band','zp','zpsys'), dtype=('f8', 'f8','f8','S7','f4','S4'))
         table_for_fit['error_opsim'] = Table(names=('time','flux','fluxerr','band','zp','zpsys'), dtype=('f8', 'f8','f8','S7','f4','S4'))
         table_for_fit['error_coadd_opsim'] = Table(names=('time','flux','fluxerr','band','zp','zpsys'), dtype=('f8', 'f8','f8','S7','f4','S4'))
+        table_for_fit['error_through'] = Table(names=('time','flux','fluxerr','band','zp','zpsys'), dtype=('f8', 'f8','f8','S7','f4','S4'))
+        table_for_fit['error_coadd_through'] = Table(names=('time','flux','fluxerr','band','zp','zpsys'), dtype=('f8', 'f8','f8','S7','f4','S4'))
 
-
-        mytype=[('obsHistID',np.int), ('filtSkyBrightness', np.float), ('airmass', np.float), ('moonPhase', np.float), ('fieldRA', np.float), ('fieldDec', np.float), ('visitExpTime', np.float), ('expDate', np.int), ('filter',np.dtype('a15')), ('fieldID', np.int), ('fiveSigmaDepth', np.float), ('ditheredDec', np.float), ('expMJD', np.float), ('ditheredRA',np.float), ('rawSeeing', np.float),('flux',np.float),('err_flux',np.float),('err_flux_opsim',np.float),('finSeeing',np.float),('katm_opsim',np.float),('katm_calc',np.float),('m5_calc',np.float),('Tb',np.float),('Sigmab',np.float),('Cm',np.float),('dCm',np.float),('mag_SN',np.float),('snr_m5_through',np.float),('snr_m5_opsim',np.float),('gamma_through',np.float),('gamma_opsim',np.float),('snr_SED',np.float)]
+        mytype=[('obsHistID',np.int), ('filtSkyBrightness', np.float), ('airmass', np.float), ('moonPhase', np.float), ('fieldRA', np.float), ('fieldDec', np.float), ('visitExpTime', np.float), ('expDate', np.int), ('filter',np.dtype('a15')), ('fieldID', np.int), ('fiveSigmaDepth', np.float), ('ditheredDec', np.float), ('expMJD', np.float), ('ditheredRA',np.float), ('rawSeeing', np.float),('flux',np.float),('err_flux',np.float),('err_flux_opsim',np.float),('err_flux_through',np.float),('finSeeing',np.float),('katm_opsim',np.float),('katm_calc',np.float),('m5_calc',np.float),('Tb',np.float),('Sigmab',np.float),('Cm',np.float),('dCm',np.float),('mag_SN',np.float),('snr_m5_through',np.float),('snr_m5_opsim',np.float),('gamma_through',np.float),('gamma_opsim',np.float),('snr_SED',np.float)]
 
         myobservations=np.zeros((60,1),dtype=mytype)
 
@@ -630,8 +631,13 @@ class AnaMetric(BaseMetric):
                 myobservations['Tb'][nobs]=Tb
                 myobservations['Sigmab'][nobs]=Sigmab
                 myobservations['katm_calc'][nobs]=katm
-                myobservations['katm_opsim'][nobs]=self.kAtm[filtre]
-
+                myobservations['katm_opsim'][nobs]=self.kAtm[filtre] 
+                wavelen_min, wavelen_max, wavelen_step=transmission.lsst_system[filtre].getWavelenLimits(None,None,None)
+                flatSed = Sed()
+                flatSed.setFlatSED(wavelen_min, wavelen_max, wavelen_step)
+                flux0=np.power(10.,-0.4*obs['filtSkyBrightness'])
+                flatSed.multiplyFluxNorm(flux0)
+                
                 if flux_SN >0:
                  
                     #print 'positive flux',flux_SN
@@ -642,18 +648,22 @@ class AnaMetric(BaseMetric):
                     photParams = PhotometricParameters()
                     snr_SN= SignalToNoise.calcSNR_sed(sed_SN,transmission.lsst_atmos_aerosol[filtre], transmission.darksky, transmission.lsst_system[filtre], 
                                                       photParams, FWHMeff=FWHMeff, verbose=False)
-                    m5_calc=SignalToNoise.calcM5(transmission.darksky,transmission.lsst_atmos_aerosol[filtre],transmission.lsst_system[filtre],photParams=photParams,FWHMeff=FWHMeff)
+                    #m5_calc=SignalToNoise.calcM5(transmission.darksky,transmission.lsst_atmos_aerosol[filtre],transmission.lsst_system[filtre],photParams=photParams,FWHMeff=FWHMeff)
+                    m5_calc=SignalToNoise.calcM5(flatSed,transmission.lsst_atmos_aerosol[filtre],transmission.lsst_system[filtre],photParams=photParams,FWHMeff=FWHMeff)
                     snr_m5_through,gamma_through=SignalToNoise.calcSNR_m5(mag_SN,transmission.lsst_atmos_aerosol[filtre],m5_calc,photParams)
                     snr_m5_opsim,gamma_opsim=SignalToNoise.calcSNR_m5(mag_SN,transmission.lsst_atmos_aerosol[filtre],m5_opsim,photParams)
 
                     #print 'm5 diff',filtre,m5_calc,m5_opsim,m5_calc/m5_opsim,m5_recalc,(m5_opsim/m5_recalc)
                     err_flux_SN=flux_SN/snr_SN
                     err_flux_SN_opsim=flux_SN/snr_m5_opsim
+                    err_flux_SN_through=flux_SN/snr_m5_through
 
+                    #print 'test errors',flux_SN,err_flux_SN,err_flux_SN_opsim,err_flux_SN_through,err_flux_SN_through/err_flux_SN_opsim,m5_opsim-m5_calc
                     myobservations['mag_SN'][nobs]=mag_SN
                     myobservations['flux'][nobs]=flux_SN
                     myobservations['err_flux'][nobs]=err_flux_SN
                     myobservations['err_flux_opsim'][nobs]=err_flux_SN_opsim
+                    myobservations['err_flux_through'][nobs]=err_flux_SN_through
                     myobservations['m5_calc'][nobs]=m5_calc
                     myobservations['snr_m5_through'][nobs]=snr_m5_through
                     myobservations['snr_m5_opsim'][nobs]=snr_m5_opsim
@@ -663,9 +673,10 @@ class AnaMetric(BaseMetric):
                   
                     #print 'SNR',flux_SN,flux_SN/err_flux_SN,flux_SN/err_flux_SN_opsim
                     #if flux_SN/err_flux_SN >=5:
-                    table_for_fit['error_calc'].add_row((time_obs,flux_SN,err_flux_SN,'LSST::'+filtre,25,'ab'))
+                    #table_for_fit['error_calc'].add_row((time_obs,flux_SN,err_flux_SN,'LSST::'+filtre,25,'ab'))
                     #if flux_SN/err_flux_SN_opsim >=5.:
                     table_for_fit['error_opsim'].add_row((time_obs,flux_SN,err_flux_SN_opsim,'LSST::'+filtre,25,'ab'))
+                    table_for_fit['error_through'].add_row((time_obs,flux_SN,err_flux_SN_through,'LSST::'+filtre,25,'ab'))
                     #print 'Getting fluxes and errors',time.time()-self.thetime,filtre,nobs
                 else:
                     err_flux_SN=-999.
@@ -674,6 +685,7 @@ class AnaMetric(BaseMetric):
                     myobservations['flux'][nobs]=flux_SN
                     myobservations['err_flux'][nobs]=-999.
                     myobservations['err_flux_opsim'][nobs]=-999.
+                    myobservations['err_flux_through'][nobs]=-999.
                     myobservations['m5_calc'][nobs]=-999. 
                     myobservations['snr_m5_through'][nobs]=-999
                     myobservations['snr_m5_opsim'][nobs]=-999
@@ -697,18 +709,20 @@ class AnaMetric(BaseMetric):
         #print 'there obs',myobservations
         #print 'Getting coadds',time.time()-self.thetime
         for band in ['u','g','r','i','z','y']:
-            sela=table_for_fit['error_calc'][np.where(table_for_fit['error_calc']['band']=='LSST::'+band)]
+            #sela=table_for_fit['error_calc'][np.where(table_for_fit['error_calc']['band']=='LSST::'+band)]
             #sela=sela[np.where(np.logical_and(sela['flux']/sela['fluxerr']>5.,sela['flux']>0.))]
             selb=table_for_fit['error_opsim'][np.where(table_for_fit['error_opsim']['band']=='LSST::'+band)]
             #selb=selb[np.where(np.logical_and(selb['flux']/selb['fluxerr']>5.,selb['flux']>0.))]
+            selc=table_for_fit['error_through'][np.where(table_for_fit['error_through']['band']=='LSST::'+band)]
 
-            table_for_fit['error_coadd_calc']=vstack([table_for_fit['error_coadd_calc'],self.Get_coadd(sela)])
+            #table_for_fit['error_coadd_calc']=vstack([table_for_fit['error_coadd_calc'],self.Get_coadd(sela)])
             table_for_fit['error_coadd_opsim']=vstack([table_for_fit['error_coadd_opsim'],self.Get_coadd(selb)])
+            table_for_fit['error_coadd_through']=vstack([table_for_fit['error_coadd_through'],self.Get_coadd(selc)])
 
         #print 'There we go fitting',time.time()-self.thetime
         dict_fit={}
         #for val in ['error_calc','error_coadd_calc','error_opsim','error_coadd_opsim']:
-        for val in ['error_coadd_calc','error_coadd_opsim']:
+        for val in ['error_coadd_opsim','error_coadd_through']:
             dict_fit[val]={}
             dict_fit[val]['sncosmo_fitted']={}
             dict_fit[val]['table_for_fit']=table_for_fit[val]

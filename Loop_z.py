@@ -5,7 +5,7 @@ import time
 
 parser = OptionParser()
 parser.add_option("-z", "--zmin", type="float", default=0.0, help="filter [%default]")
-parser.add_option("-Z", "--zmax", type="float", default=1., help="filter [%default]")
+parser.add_option("-Z", "--zmax", type="float", default=1.2, help="filter [%default]")
 parser.add_option("-N", "--nevts", type="int", default=10, help="filter [%default]")
 parser.add_option("-m", "--model", type="string", default='salt2-extended', help="filter [%default]")
 parser.add_option("-v", "--version", type="string", default='', help="filter [%default]")

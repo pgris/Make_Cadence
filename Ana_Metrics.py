@@ -19,6 +19,8 @@ parser.add_option("-o", "--opsimrun", type="string", default='minion_1016', help
 parser.add_option("-r", "--runtype", type="string", default='Simulation', help="filter [%default]")
 parser.add_option("-s", "--season", type="int", default=-1, help="filter [%default]")
 parser.add_option("-t", "--sntype", type="string", default='Ia', help="filter [%default]")
+parser.add_option("-n","--nrolling", type="int", default='3', help="filter [%default]")
+parser.add_option("-p","--percent_merge", type="int", default='80', help="filter [%default]")
 
 opts, args = parser.parse_args()
 
@@ -39,7 +41,7 @@ print 'hello',proptags,propinfo
 
 
 #metric=metrics.SupernovaMetric(m5Col='fiveSigmaDepth', redshift=0.1, resolution=5.,Nbetween=20)
-metric=AnaMetric(m5Col='fiveSigmaDepth',zmin=opts.zmin,zmax=opts.zmax,Nevts=opts.nevts,model=opts.model,version=opts.version,fieldname=opts.fieldname,fieldID=opts.fieldid,opsimrun=opts.opsimrun,runtype=opts.runtype,season=opts.season,sntype=opts.sntype)
+metric=AnaMetric(m5Col='fiveSigmaDepth',zmin=opts.zmin,zmax=opts.zmax,Nevts=opts.nevts,model=opts.model,version=opts.version,fieldname=opts.fieldname,fieldID=opts.fieldid,opsimrun=opts.opsimrun,runtype=opts.runtype,season=opts.season,sntype=opts.sntype,nrolling=opts.nrolling,percent_merge=opts.percent_merge)
 #slicer = slicers.HealpixSlicer(nside=256)
 
 

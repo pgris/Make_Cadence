@@ -35,7 +35,7 @@ class AnaMetric(BaseMetric):
                  resolution=5., badval=-666,
                  uniqueBlocks=False, **kwargs):
     """
-    def __init__(self, metricName='AnaMetric',mjdCol='expMJD', filterCol='filter', m5Col='fiveSigmaDepth',units='', badval=-666,uniqueBlocks=False,zmin=0.01,zmax=0.5,Nevts=10, model='salt2-extended',version='1.0',fieldname='DD',fieldID=290,opsimrun='minion_1016',snrate='Flat',runtype='Simulation',season=-1,sntype='Ia',**kwargs):
+    def __init__(self, metricName='AnaMetric',mjdCol='expMJD', filterCol='filter', m5Col='fiveSigmaDepth',units='', badval=-666,uniqueBlocks=False,zmin=0.01,zmax=0.5,Nevts=10, model='salt2-extended',version='1.0',fieldname='DD',fieldID=290,opsimrun='minion_1016',snrate='Flat',runtype='Simulation',season=-1,sntype='Ia',nrolling=3,percent_merge=80,**kwargs):
     
        """
         
@@ -94,6 +94,10 @@ class AnaMetric(BaseMetric):
        self.runtype=runtype
        self.season=season
        self.sntype=sntype
+
+       self.nrolling=nrolling
+       self.percent_merge=percent_merge
+
 
        self.time_begin=time.time()
        if not os.path.exists(self.outputdir):
@@ -271,15 +275,17 @@ class AnaMetric(BaseMetric):
         if dataSlice[self.fieldID][0]==self.fieldID_ref:
 
             addit=''
+            addafter_rolling=''
             if self.rolling==True:
                 addit='Rolling_'
-
+                addafter_rolling='_'+str(self.nrolling)+'_'+str(self.percent_merge)
+                
 
             TSeason_min=-1
             TSeason_max=-1
 
             if self.season > -1:
-                sfile=open('Seasons/Seasons_'+addit+self.fieldName+'_'+str(self.fieldID_ref)+'.txt', 'r')
+                sfile=open('Seasons/Seasons_'+addit+self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.txt', 'r')
                 for line in sfile.readlines():
                     if int(line.split(' ')[0]) == self.season:
                         TSeason_min=float(line.split(' ')[1])
@@ -340,7 +346,7 @@ class AnaMetric(BaseMetric):
 
             dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
             if self.rolling == True:
-                dataSlice = pkl.load(open('Rolling_Cadence_'+ self.fieldName+'_'+str(self.fieldID_ref)+'.pkl','rb'))
+                dataSlice = pkl.load(open('Rolling_Cadence_'+ self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.pkl','rb'))
 
             if dataSlice.size == 0:
             #print 'Data slice sizee',dataSlice.size
@@ -350,10 +356,10 @@ class AnaMetric(BaseMetric):
 
             dataSlice.sort(order=self.mjdCol)
    
-            """
-            print 'dataslice',dataSlice['fieldRA'],dataSlice['fieldDec'],dataSlice['expMJD']
-            time = dataSlice[self.mjdCol]-dataSlice[self.mjdCol].min()
-            """
+            
+            #print 'dataslice',dataSlice['fieldRA'],dataSlice['fieldDec'],dataSlice['expMJD']
+            #time = dataSlice[self.mjdCol]-dataSlice[self.mjdCol].min()
+            
 
             """
             for data in dataSlice: 
@@ -397,7 +403,7 @@ class AnaMetric(BaseMetric):
             """
 
             name_for_pkl+='_'+str(N_sn)
-
+            name_for_pkl+=addafter_rolling
             if self.season > -1:
                 name_for_pkl+='_season_'+str(self.season)
 
@@ -480,7 +486,9 @@ class AnaMetric(BaseMetric):
                     continue
 
                 observations=dataSlice[np.where(np.logical_and(dataSlice['expMJD']>timelow,dataSlice['expMJD']<timehigh))]
+                #print 'before obs',len(dataSlice)
                 if len(observations) > 0:
+                    #print 'observations',len(observations)
                     ra=observations[self.fieldRA][0]
                     dec=observations[self.fieldDec][0]
                     #print 'This is T0',T0,c,x1
@@ -496,11 +504,11 @@ class AnaMetric(BaseMetric):
                     outdict['mbsim']=mbsim
                     outdict['observations']=myobs
                     outdict['status']='try_fit'
-                    #print 'dumping in pkl',i
+                    #print 'dumping in pkl',outdict['status'],outdict['fit'],outdict['mbsim']
                     pkl.dump(outdict, pkl_file)
 
                 else:
-                #print 'No obs'
+                    #print 'No obs'
                     outdict['status']='No obs in [T0'+str(int(lowrange))+';T0+'+str(int(highrange))+']'
                     pkl.dump(outdict, pkl_file)
 

@@ -286,6 +286,8 @@ class AnaMetric(BaseMetric):
                 m_begin_date=TSeason_min
                 m_end_date=TSeason_max
  
+            dataSlice=dataSlice[np.where(np.logical_and(dataSlice['expMJD']>=m_begin_date,dataSlice['expMJD']<=m_end_date))]
+
             #print 'hello',m_begin_date,m_end_date
             rate_SN=SN_Rate(GeneralCosmo(0.27, 0.73, -1.,0),zmin,zmax,zstep,m_end_date-m_begin_date,3.6,self.snrate)
             
@@ -341,8 +343,7 @@ class AnaMetric(BaseMetric):
                
                 c=np.random.choice(c_vals,1,p=c_weights)[0]
                 x1=np.random.choice(x1_vals,1,p=x1_weights)[0]
-
-                
+             
                  #print 'alors c x1',c,X1,c_weights
                 """
                 z=0.04250000000000000

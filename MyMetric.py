@@ -15,6 +15,7 @@ import time
 from SN_Rates import SN_Rate
 from cosmology import *
 from SN_Object import SN_Object
+from Parameters import parameters
 from Throughputs import Throughputs
 #import pickle as pkl
 import cPickle as pkl
@@ -126,98 +127,8 @@ class AnaMetric(BaseMetric):
        self.filterNames = np.array(['u','g','r','i','z','y'])
         # Set rough values for the filter effective wavelengths.
        self.singleDepthLimit = -1
-       """
-       self.Cm = {'u':23.60,
-                  'g':24.57,
-                  'r':24.57,
-                  'i':24.47,
-                  'z':24.19,
-                  'y':23.45,
-                  'y1':23.74}
-       
-       self.kAtm = {'u':0.48,
-                    'g':0.21,
-                    'r':0.10,
-                    'i':0.07,
-                    'z':0.06,
-                    'y':0.06}
-       """
 
-       #Values taken from sims_operations/tools/opsimUtils.py
-       """
-       self.Cm = {'u': 22.74,
-                  'g': 24.38,
-                  'r': 24.43,
-                  'i': 24.30,
-                  'z': 24.15,
-                  'y': 23.70}
-
-       self.dCm_infinity = {'u': 0.75,
-                            'g': 0.19,
-                            'r': 0.10,
-                            'i': 0.07,
-                            'z': 0.05,
-                            'y': 0.04}
-
-       """                  
-       #Values taken from sims_operations/tools/schema_tools/gen_output.py 
-
-       self.kAtm = {'u': 0.50,
-                    'g': 0.21,
-                    'r': 0.13,
-                    'i': 0.10,
-                    'z': 0.07,
-                    'y': 0.18} 
-       
-
-       self.msky = {'u': 22.95,
-               'g': 22.24,
-               'r': 21.20,
-               'i': 20.47,
-               'z': 19.60,
-               'y': 18.63} 
-
-       self.Cm = {'u':22.94,
-             'g':24.46,
-             'r':24.48,
-             'i':24.34,
-             'z':24.18,
-             'y':23.73}
-
-       self.dCm_infinity = {'u':0.56,
-                       'g':0.12,
-                       'r':0.06,
-                       'i':0.05,
-                       'z':0.03,
-                       'y':0.02}
-      
-
-       #FWHM_500 = seeing at 500 nm
-       # FWHM_Sys_Zenith = sqrt(telSeeing**2 + opticalDesSeeing**2 + cameraSeeing**2)
-       # Filter_Wavelength_Correction = (500 nm / Filter_Effective_Wavelength)**0.3
-       # Airmass_Correction = airmass**0.6
-       # FWHM_Sys = FWHM_Sys_Zenith * Airmass_Correction
-       # FWHM_Atm = FWHM_500 * Filter_Wavelength_Correction * Airmass_Correction
-       # FWHM_Eff = scaleToNeff * sqrt(FWHM_Sys**2 + atmNeffFactor * FWHM_Atm**2)
-       # FWHM_Eff is the value in ObsHistory.finSeeing for the observations filter
-       #
-       # Units = unitless, Format = float, no default
-       #
-
-       self.telSeeing = 0.250 # design goal
-       self.opticalDesSeeing = 0.08
-       self.cameraSeeing = 0.300
-       # Scaling factors for above seeing calculation
-       self.scaleToNeff = 1.16
-       self.atmNeffFactor = 1.04
-       self.FWHM_Sys_Zenith = np.sqrt(self.telSeeing**2 + self.opticalDesSeeing**2 + self.cameraSeeing**2)
-
-       self.filterWave = {'u': 367.0, 'g': 482.5, 'r': 622.2, 'i': 754.5, 'z': 869.1, 'y': 971.0}
-
-    """     
-    def run(self, dataSlice, slicePoint=None):
-         print 'fieldIds',dataSlice[self.fieldID][0]
-    """ 
+       self.params=parameters()
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -620,26 +531,26 @@ class AnaMetric(BaseMetric):
                 
                 #print 'there mbsky',filtre,mbsky_through,obs['filtSkyBrightness'],katm,self.kAtm[filtre],Tb,Sigmab,obs['airmass']
 
-                Filter_Wavelength_Correction = np.power(500.0 / self.filterWave[filtre], 0.3)
+                Filter_Wavelength_Correction = np.power(500.0 / self.params.filterWave[filtre], 0.3)
                 Airmass_Correction = math.pow(obs['airmass'],0.6)
-                FWHM_Sys = self.FWHM_Sys_Zenith * Airmass_Correction
+                FWHM_Sys = self.params.FWHM_Sys_Zenith * Airmass_Correction
                 FWHM_Atm = seeing * Filter_Wavelength_Correction * Airmass_Correction
-                finSeeing = self.scaleToNeff * math.sqrt(np.power(FWHM_Sys,2) + self.atmNeffFactor * np.power(FWHM_Atm,2))
+                finSeeing = self.params.scaleToNeff * math.sqrt(np.power(FWHM_Sys,2) + self.params.atmNeffFactor * np.power(FWHM_Atm,2))
 
 
                 #print 'hello pal',filtre,finSeeing,obs['visitExpTime']
-                Tscale = obs['visitExpTime']/ 30.0 * np.power(10.0, -0.4*(obs['filtSkyBrightness'] - self.msky[filtre]))
-                dCm = self.dCm_infinity[filtre] - 1.25*np.log10(1 + np.power(10.,0.8*self.dCm_infinity[filtre]- 1.)/Tscale)
+                Tscale = obs['visitExpTime']/ 30.0 * np.power(10.0, -0.4*(obs['filtSkyBrightness'] - self.params.msky[filtre]))
+                dCm = self.params.dCm_infinity[filtre] - 1.25*np.log10(1 + np.power(10.,0.8*self.params.dCm_infinity[filtre]- 1.)/Tscale)
 
-                m5_recalc=dCm+self.Cm[filtre]+0.5*(obs['filtSkyBrightness']-21.)+2.5*np.log10(0.7/finSeeing)-self.kAtm[filtre]*(obs['airmass']-1.)+1.25*np.log10(obs['visitExpTime']/30.)
-
-                myobservations['Cm'][nobs]=self.Cm[filtre]
+                m5_recalc=dCm+self.params.Cm[filtre]+0.5*(obs['filtSkyBrightness']-21.)+2.5*np.log10(0.7/finSeeing)-self.params.kAtm[filtre]*(obs['airmass']-1.)+1.25*np.log10(obs['visitExpTime']/30.)
+                
+                myobservations['Cm'][nobs]=self.params.Cm[filtre]
                 myobservations['dCm'][nobs]=dCm
                 myobservations['finSeeing'][nobs]=finSeeing
                 myobservations['Tb'][nobs]=Tb
                 myobservations['Sigmab'][nobs]=Sigmab
                 myobservations['katm_calc'][nobs]=katm
-                myobservations['katm_opsim'][nobs]=self.kAtm[filtre] 
+                myobservations['katm_opsim'][nobs]=self.params.kAtm[filtre] 
                 wavelen_min, wavelen_max, wavelen_step=transmission.lsst_system[filtre].getWavelenLimits(None,None,None)
                 flatSed = Sed()
                 flatSed.setFlatSED(wavelen_min, wavelen_max, wavelen_step)

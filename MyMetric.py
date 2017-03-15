@@ -196,7 +196,7 @@ class AnaMetric(BaseMetric):
             TSeason_max=-1
 
             if self.season > -1:
-                sfile=open('Seasons/Seasons_'+addit+self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.txt', 'r')
+                sfile=open('../Seasons/Seasons_'+addit+self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.txt', 'r')
                 for line in sfile.readlines():
                     if int(line.split(' ')[0]) == self.season:
                         TSeason_min=float(line.split(' ')[1])
@@ -257,8 +257,10 @@ class AnaMetric(BaseMetric):
 
             dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
             if self.rolling == True:
-                dataSlice = pkl.load(open('Rolling_Cadence_'+ self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.pkl','rb'))
+                dataSlice = pkl.load(open('../Obs_minion_1016/Rolling_Cadence_'+ self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.pkl','rb'))
+                dataSlice = dataSlice['dataSlice']
 
+            #print 'hello',type(dataSlice)
             if dataSlice.size == 0:
             #print 'Data slice sizee',dataSlice.size
                 return (self.badval, self.badval,self.badval)
@@ -266,7 +268,8 @@ class AnaMetric(BaseMetric):
             #sort dataslice depending on date
 
             dataSlice.sort(order=self.mjdCol)
-   
+            #print 'after sorting',dataSlice['expMJD']
+            
             
             #print 'dataslice',dataSlice['fieldRA'],dataSlice['fieldDec'],dataSlice['expMJD']
             #time = dataSlice[self.mjdCol]-dataSlice[self.mjdCol].min()

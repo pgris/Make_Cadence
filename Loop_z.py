@@ -17,12 +17,13 @@ parser.add_option("-s", "--season", type="int", default=-1, help="filter [%defau
 parser.add_option("-t", "--sntype", type="string", default='Ia', help="filter [%default]")
 parser.add_option("-n","--nrolling", type="int", default='3', help="filter [%default]")
 parser.add_option("-p","--percent_merge", type="int", default='80', help="filter [%default]")
+parser.add_option("-d", "--dbFile", type="string",default='None', help="dbFile to process [%default]")
 
 opts, args = parser.parse_args()
 
 
-def cmd(zmin,zmax,nevts,fieldname,fieldid,season,runtype,sntype,nrolling,percent):
-    cmd='python Ana_Metrics.py --zmin '+str(zmin)+' --zmax '+str(zmax)+' --nevts '+str(nevts)+' --fieldname '+fieldname+' --fieldid '+str(fieldid)+' --season '+str(season)+' --runtype '+runtype+' --sntype '+sntype
+def cmd(zmin,zmax,nevts,fieldname,fieldid,season,runtype,sntype,nrolling,percent,dbfile):
+    cmd='python Ana_Metrics.py --zmin '+str(zmin)+' --zmax '+str(zmax)+' --nevts '+str(nevts)+' --fieldname '+fieldname+' --fieldid '+str(fieldid)+' --season '+str(season)+' --runtype '+runtype+' --sntype '+sntype+' --dbFile '+dbfile
     if runtype.count('Rolling'):
         cmd+=' --nrolling '+str(nrolling)+' --percent_merge '+str(percent)
     return cmd
@@ -53,7 +54,7 @@ if opts.runtype.count('Simulation') > 0 or opts.runtype.count('Rolling') > 0:
            
             zmin=(zrange[i] if zrange[i]>0. else zrange[i]+0.01)
             zmax=zrange[i+1]
-            mycm=cmd(zmin,zmax,opts.nevts,opts.fieldname,opts.fieldid,opts.season,opts.runtype,opts.sntype,opts.nrolling,opts.percent_merge)
+            mycm=cmd(zmin,zmax,opts.nevts,opts.fieldname,opts.fieldid,opts.season,opts.runtype,opts.sntype,opts.nrolling,opts.percent_merge,opts.dbFile)
             print mycm
 
             name_id=common_info+'_'+str(zmin)+'_'+str(zmax)+'_'+str(opts.nevts)+'_season_'+str(opts.season)
@@ -78,7 +79,7 @@ if opts.runtype.count('Simulation') > 0 or opts.runtype.count('Rolling') > 0:
         
         zmin=zrange[len(zrange)-1]
         zmax=zrange[len(zrange)-1]+zstep
-        mycm=cmd(zmin,zmax,opts.nevts,opts.fieldname,opts.fieldid,opts.season,opts.runtype,opts.sntype,opts.nrolling,opts.percent_merge)
+        mycm=cmd(zmin,zmax,opts.nevts,opts.fieldname,opts.fieldid,opts.season,opts.runtype,opts.sntype,opts.nrolling,opts.percent_merge,opts.dbFile)
         print mycm
         name_id=common_info+'_'+str(zmin)+'_'+str(zmax)+'_'+str(opts.nevts)+'_season_'+str(opts.season)
         log = dirLog + '/'+name_id+'.log'

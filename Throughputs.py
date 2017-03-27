@@ -6,10 +6,10 @@ from lsst.sims.photUtils import Sed
 import numpy as np
 
 class Throughputs:
-    def __init__(self):
+    def __init__(self,through_dir='LSST_THROUGHPUTS_BASELINE',atmos_dir='THROUGHPUTS_DIR',aerosol=True):
 
-        self.throughputsDir = os.getenv('LSST_THROUGHPUTS_BASELINE')
-        self.atmosDir = os.path.join(os.getenv('THROUGHPUTS_DIR'), 'atmos')
+        self.throughputsDir = os.getenv(through_dir)
+        self.atmosDir = os.path.join(os.getenv(atmos_dir), 'atmos')
         
         self.filterlist = ('u', 'g', 'r', 'i', 'z', 'y')
         self.filtercolors = {'u':'b', 'g':'c', 'r':'g', 'i':'y', 'z':'r', 'y':'m'}
@@ -20,19 +20,32 @@ class Throughputs:
         self.lsst_atmos={}
         self.lsst_atmos_aerosol={}
         self.airmass=-1.
-
+        self.aerosol=aerosol
         self.Load_System()
         self.Load_DarkSky()
-
+        self.Load_Atmosphere()
+        self.lsst_telescope={}
+        self.Load_Telescope()
 
     def Load_System(self):
         
         for f in self.filterlist:
             self.lsst_std[f] = Bandpass()
-            self.lsst_std[f].readThroughput(os.path.join(self.throughputsDir, 'total_'+f+'.dat'))
+            #self.lsst_std[f].readThroughput(os.path.join(self.throughputsDir, 'total_'+f+'.dat'))
             self.lsst_system[f] = Bandpass()
             self.lsst_system[f].readThroughputList(['detector.dat', 'lens1.dat', 'lens2.dat', 'lens3.dat', 
                                                     'm1.dat', 'm2.dat', 'm3.dat', 'filter_'+f+'.dat'], 
+                                                   rootDir=self.throughputsDir)
+
+    def Load_Telescope(self):
+        
+        toload=['detector', 'lens1', 'lens2', 'lens3', 'm1', 'm2', 'm3']
+        for filtre in self.filterlist:
+            toload.append('filter_'+filtre)
+
+        for system in toload:
+            self.lsst_telescope[system]=Bandpass()
+            self.lsst_telescope[system].readThroughputList([system+'.dat'], 
                                                    rootDir=self.throughputsDir)
             
 
@@ -47,18 +60,21 @@ class Throughputs:
         self.airmass=airmass
         atmosphere = Bandpass()
         atmosphere.readThroughput(os.path.join(self.atmosDir, 'atmos_%d.dat' %(self.airmass*10)))
-        atmosphere_aero = Bandpass()
-        atmosphere_aero.readThroughput(os.path.join(self.atmosDir, 'atmos_%d_aerosol.dat' %(self.airmass*10)))
-
         self.atmos= Bandpass(wavelen=atmosphere.wavelen, sb=atmosphere.sb)
-        self.atmos_aerosol= Bandpass(wavelen=atmosphere_aero.wavelen, sb=atmosphere_aero.sb)
+       
 
         for f in self.filterlist:
             wavelen, sb = self.lsst_system[f].multiplyThroughputs(atmosphere.wavelen, atmosphere.sb)
-        
             self.lsst_atmos[f]= Bandpass(wavelen=wavelen, sb=sb)
-            wavelen, sb = self.lsst_system[f].multiplyThroughputs(atmosphere_aero.wavelen, atmosphere_aero.sb)
-            self.lsst_atmos_aerosol[f]= Bandpass(wavelen=wavelen, sb=sb)
+
+        if self.aerosol:
+            atmosphere_aero = Bandpass()
+            atmosphere_aero.readThroughput(os.path.join(self.atmosDir, 'atmos_%d_aerosol.dat' %(self.airmass*10)))
+            self.atmos_aerosol= Bandpass(wavelen=atmosphere_aero.wavelen, sb=atmosphere_aero.sb)
+
+            for f in self.filterlist:
+                wavelen, sb = self.lsst_system[f].multiplyThroughputs(atmosphere_aero.wavelen, atmosphere_aero.sb)
+                self.lsst_atmos_aerosol[f]= Bandpass(wavelen=wavelen, sb=sb)
 
 
     def Plot_Throughputs(self):
@@ -70,15 +86,17 @@ class Throughputs:
             #plt.plot(self.lsst_std[band].wavelen,self.lsst_std[band].sb,linestyle='-',color=self.filtercolors[band], label='%s - std' %(band))
             plt.plot(self.lsst_system[band].wavelen,self.lsst_system[band].sb,linestyle='--',color=self.filtercolors[band], label='%s - syst' %(band))
             plt.plot(self.lsst_atmos[band].wavelen,self.lsst_atmos[band].sb,linestyle='-.',color=self.filtercolors[band], label='%s - syst+atm' %(band))
-            plt.plot(self.lsst_atmos_aerosol[band].wavelen,self.lsst_atmos_aerosol[band].sb,linestyle='-',color=self.filtercolors[band], label='%s - syst+atm+aero' %(band))
+            if len(self.lsst_atmos_aerosol) > 0:
+                plt.plot(self.lsst_atmos_aerosol[band].wavelen,self.lsst_atmos_aerosol[band].sb,linestyle='-',color=self.filtercolors[band], label='%s - syst+atm+aero' %(band))
 
         plt.plot(self.atmos.wavelen, self.atmos.sb, 'k:', label='X =%.1f atmos' %(self.airmass),linestyle='-')
-        plt.plot(self.atmos_aerosol.wavelen, self.atmos_aerosol.sb, 'k:', label='X =%.1f atm+aero' %(self.airmass),linestyle='--')
+        if len(self.lsst_atmos_aerosol) > 0:
+            plt.plot(self.atmos_aerosol.wavelen, self.atmos_aerosol.sb, 'k:', label='X =%.1f atm+aero' %(self.airmass),linestyle='--')
         plt.legend(loc=(0.85, 0.1), fontsize='smaller', fancybox=True, numpoints=1)
         plt.xlabel('Wavelength (nm)')
         plt.ylabel('Sb (0-1)')
         plt.title('System throughput')
-        plt.show()
+        #plt.show()
 
     def Plot_DarkSky(self):
 
@@ -86,7 +104,7 @@ class Throughputs:
         plt.xlabel('Wavelength (nm)')                                                                                   
         plt.ylabel('flambda (ergs/cm$^2$/s/nm)')                                                                                          
         plt.title('Dark Sky SED')                                                                                  
-        plt.show()
+        #plt.show()
  
     def Plot_Throughputs_Spectrum(self,wavelength,fluxes,z):
         

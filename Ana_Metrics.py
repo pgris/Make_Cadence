@@ -21,13 +21,15 @@ parser.add_option("-s", "--season", type="int", default=-1, help="filter [%defau
 parser.add_option("-t", "--sntype", type="string", default='Ia', help="filter [%default]")
 parser.add_option("-n","--nrolling", type="int", default='3', help="filter [%default]")
 parser.add_option("-p","--percent_merge", type="int", default='80', help="filter [%default]")
+parser.add_option("-d", "--dbFile", type="string",default='None', help="dbFile to process [%default]")
 
 opts, args = parser.parse_args()
 
 outDir ='Test'
 
 #dbFile = '/data/pgris/sims_operation/Run_OpSim/enigma_1189_sqlite.db'
-dbFile = '/sps/lsst/data/dev/pgris/sims_operations/DB_Files/'+opts.opsimrun+'_sqlite.db'
+#dbFile = '/sps/lsst/data/dev/pgris/sims_operations/DB_Files/'+opts.opsimrun+'_sqlite.db'
+dbFile = opts.dbFile
 #dbFile = '/data/pgris/sims_operation/Run_OpSim/clrlsstsrv_1068_sqlite.db'
 opsimdb = utils.connectOpsimDb(dbFile)
 resultsDb = db.ResultsDb(outDir=outDir)

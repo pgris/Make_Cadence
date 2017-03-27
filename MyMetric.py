@@ -108,21 +108,7 @@ class AnaMetric(BaseMetric):
        super(AnaMetric, self).__init__(col=[self.mjdCol, self.m5Col, self.filterCol, self.dateCol,self.fieldRA,self.fieldDec, self.ditheredRA,self.ditheredDec,self.visitTime,self.rawSeeing,self.moonPhase,self.airmass,self.filtSkyBrightness,self.fieldID],
                                               metricName=metricName, units=units, badval=badval,
                                               **kwargs)
-       """
-       self.redshift = redshift
-       self.Tmin = Tmin
-       self.Tmax = Tmax
-       self.Nbetween = Nbetween
-       self.Nfilt = Nfilt
-       self.Nfilt_obs = Nfilt_obs
-       self.Tless = Tless
-       self.Nless = Nless
-       self.Tmore = Tmore
-       self.Nmore = Nmore
-       self.peakGap = peakGap
-       self.snrCut = snrCut
-       self.resolution = resolution
-       """
+    
        self.uniqueBlocks = uniqueBlocks
        self.filterNames = np.array(['u','g','r','i','z','y'])
         # Set rough values for the filter effective wavelengths.
@@ -256,10 +242,11 @@ class AnaMetric(BaseMetric):
             """
 
             dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
+            """
             if self.rolling == True:
                 dataSlice = pkl.load(open('../Obs_minion_1016/Rolling_Cadence_'+ self.fieldName+'_'+str(self.fieldID_ref)+addafter_rolling+'.pkl','rb'))
                 dataSlice = dataSlice['dataSlice']
-
+            """
             #print 'hello',type(dataSlice)
             if dataSlice.size == 0:
             #print 'Data slice sizee',dataSlice.size

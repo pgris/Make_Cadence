@@ -131,7 +131,9 @@ class AnaMetric(BaseMetric):
 
     def run_observation(self, dataSlice, slicePoint=None):
              
-        dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
+        #dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
+        self.fieldID_ref=dataSlice[self.fieldID][0]
+        print 'Processing',self.fieldID_ref
         if len(dataSlice) > 0:
             dataSlice.sort(order=self.mjdCol)
             
@@ -342,13 +344,14 @@ class AnaMetric(BaseMetric):
                 X1= 1.2478457417636148
                 c = 0.0059916789377777759
                 """
+                z=np.random.choice(rate_SN.hz,1,p=weights)[0]
 
-                timelow = T0+ lowrange
-                timehigh = T0 + highrange
+                timelow = T0+ lowrange*(1+z)
+                timehigh = T0 + highrange*(1+z)
                 
                 #T0=0.5*(m_begin_date+m_end_date)
             
-                z=np.random.choice(rate_SN.hz,1,p=weights)[0]
+                
 
                 """
                 T0=0.5*(TSeason_min+TSeason_max)

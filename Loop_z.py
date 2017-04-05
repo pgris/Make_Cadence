@@ -102,5 +102,5 @@ if opts.runtype.count('Simulation') > 0 or opts.runtype.count('Rolling') > 0:
 
 if opts.runtype == 'Observation':
     
-    cmd='python Ana_Metrics.py --fieldname '+opts.fieldname+' --fieldid '+str(opts.fieldid)+' --runtype '+opts.runtype
+    cmd='python Ana_Metrics.py --fieldname '+opts.fieldname+' --fieldid '+str(opts.fieldid)+' --runtype '+opts.runtype+' --dbFile '+opts.dbFile
     os.system(cmd)

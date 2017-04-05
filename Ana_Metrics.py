@@ -4,7 +4,7 @@ import lsst.sims.maf.metricBundles as metricBundles
 import lsst.sims.maf.slicers as slicers
 import lsst.sims.maf.db as db
 import lsst.sims.maf.utils as utils
-from MyMetric import AnaMetric
+from MyMetric_Coadd_Obs import AnaMetric
 from optparse import OptionParser
 
 parser = OptionParser()

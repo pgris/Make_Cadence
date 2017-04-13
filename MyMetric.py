@@ -133,7 +133,7 @@ class AnaMetric(BaseMetric):
              
         #dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
         self.fieldID_ref=dataSlice[self.fieldID][0]
-        print 'Processing',self.fieldID_ref
+        print 'Processing',self.fieldID_ref,len(dataSlice[self.fieldID])
         if len(dataSlice) > 0:
             dataSlice.sort(order=self.mjdCol)
             

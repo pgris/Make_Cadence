@@ -132,8 +132,9 @@ class AnaMetric(BaseMetric):
              
         #dataSlice = dataSlice[np.where(dataSlice[self.fieldID]==self.fieldID_ref)]
         self.fieldID_ref=dataSlice[self.fieldID][0]
-        print 'Processing',self.fieldID_ref
-        if len(dataSlice) > 0:
+        
+        if len(dataSlice) >0 :
+            print 'Processing',self.fieldID_ref,len(dataSlice)
             dataSlice.sort(order=self.mjdCol)
             
             #print 'hello',dataSlice[self.fieldRA],len(dataSlice[self.fieldRA]),set(dataSlice[self.fieldRA]),len(set(dataSlice[self.fieldRA]))
@@ -164,6 +165,8 @@ class AnaMetric(BaseMetric):
     def run_simulation(self, dataSlice, slicePoint=None, sn_type='Ia'):
                  
         if dataSlice[self.fieldID][0]==self.fieldID_ref:
+
+            dataSlice.sort(order=self.mjdCol)
 
             coadded_obs=self.Coadd_Observations(dataSlice)
             #print 'data',len(coadded_obs)
@@ -443,6 +446,7 @@ class AnaMetric(BaseMetric):
                 
                 m5_calc=SignalToNoise.calcM5(flatSed,transmission.lsst_atmos_aerosol[filtre],transmission.lsst_system[filtre],photParams=photParams,FWHMeff=FWHMeff)
                 snr_m5_through,gamma_through=SignalToNoise.calcSNR_m5(mag_SN,transmission.lsst_atmos_aerosol[filtre],m5_calc,photParams)
+                m5_opsim+=1.25*np.log10(obs['visitExpTime']/30.)
                 snr_m5_opsim,gamma_opsim=SignalToNoise.calcSNR_m5(mag_SN,transmission.lsst_atmos_aerosol[filtre],m5_opsim,photParams)
                 
                 err_flux_SN=0
@@ -686,6 +690,13 @@ class AnaMetric(BaseMetric):
         dict_for_coadd={}
         filtc=filt.copy()
         filtc.reshape((filtc.size,1))
+
+        """
+        print 'before coadding'
+        for val in filtc:
+            print val['expMJD'],val['filter']
+        """
+
         if len(filtc) > 0:
             inum=0
             dict_for_coadd[inum]=np.zeros((0,1),filtc.dtype)

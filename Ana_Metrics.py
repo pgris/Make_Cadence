@@ -44,7 +44,8 @@ print 'hello',proptags,propinfo
 
 #metric=metrics.SupernovaMetric(m5Col='fiveSigmaDepth', redshift=0.1, resolution=5.,Nbetween=20)
 metric=AnaMetric(m5Col='fiveSigmaDepth',zmin=opts.zmin,zmax=opts.zmax,Nevts=opts.nevts,model=opts.model,version=opts.version,fieldname=opts.fieldname,fieldID=opts.fieldid,opsimrun=opts.opsimrun,runtype=opts.runtype,season=opts.season,sntype=opts.sntype,nrolling=opts.nrolling,percent_merge=opts.percent_merge)
-#slicer = slicers.HealpixSlicer(nside=256)
+
+#slicer = slicers.HealpixSlicer(nside=128)
 
 
 slicer=slicers.OpsimFieldSlicer()

@@ -107,6 +107,8 @@ class AnaMetric(BaseMetric):
 
        self.cols=['obsHistID', 'sessionID', 'propID', 'fieldID', 'fieldRA', 'fieldDec', 'filter', 'expDate', 'expMJD', 'night', 'visitTime', 'visitExpTime', 'finRank', 'FWHMeff', 'FWHMgeom', 'transparency', 'airmass', 'vSkyBright', 'filtSkyBrightness', 'rotSkyPos', 'rotTelPos', 'lst', 'altitude', 'azimuth', 'dist2Moon', 'solarElong', 'moonRA', 'moonDec', 'moonAlt', 'moonAZ', 'moonPhase', 'sunAlt', 'sunAz', 'phaseAngle', 'rScatter', 'mieScatter', 'moonIllum', 'moonBright', 'darkBright', 'rawSeeing', 'wind', 'humidity', 'slewDist', 'slewTime', 'fiveSigmaDepth', 'ditheredRA', 'ditheredDec']
 
+       self.cols_restricted=[self.mjdCol, self.m5Col, self.filterCol, self.dateCol,self.fieldRA,self.fieldDec, self.ditheredRA,self.ditheredDec,self.visitTime,self.rawSeeing,self.moonPhase,self.airmass,self.filtSkyBrightness,self.fieldID]
+
        super(AnaMetric, self).__init__(col=self.cols,metricName=metricName, units=units, badval=badval, **kwargs)
        #super(AnaMetric, self).__init__(col=[self.mjdCol, self.m5Col, self.filterCol, self.dateCol,self.fieldRA,self.fieldDec, self.ditheredRA,self.ditheredDec,self.visitTime,self.rawSeeing,self.moonPhase,self.airmass,self.filtSkyBrightness,self.fieldID],
                                               #metricName=metricName, units=units, badval=badval,
@@ -398,7 +400,7 @@ class AnaMetric(BaseMetric):
             if len(myobservations) <= nobs:
                 myobservations=np.resize(myobservations,(len(myobservations)+100,1))
 
-            for name in observations.dtype.names:
+            for name in self.cols_restricted:
                 myobservations[name][nobs]=obs[name]
 
             seeing=obs['rawSeeing']
@@ -416,17 +418,21 @@ class AnaMetric(BaseMetric):
             
             mbsky_through=0
 
+            """
             Filter_Wavelength_Correction = np.power(500.0 / self.params.filterWave[filtre], 0.3)
             Airmass_Correction = math.pow(obs['airmass'],0.6)
             FWHM_Sys = self.params.FWHM_Sys_Zenith * Airmass_Correction
             FWHM_Atm = seeing * Filter_Wavelength_Correction * Airmass_Correction
             finSeeing = self.params.scaleToNeff * math.sqrt(np.power(FWHM_Sys,2) + self.params.atmNeffFactor * np.power(FWHM_Atm,2))
+            
 
             Tscale = obs['visitExpTime']/ 30.0 * np.power(10.0, -0.4*(obs['filtSkyBrightness'] - self.params.msky[filtre]))
             dCm = self.params.dCm_infinity[filtre] - 1.25*np.log10(1 + np.power(10.,0.8*self.params.dCm_infinity[filtre]- 1.)/Tscale)
 
             m5_recalc=dCm+self.params.Cm[filtre]+0.5*(obs['filtSkyBrightness']-21.)+2.5*np.log10(0.7/finSeeing)-self.params.kAtm[filtre]*(obs['airmass']-1.)+1.25*np.log10(obs['visitExpTime']/30.)
-                
+            
+            """
+            """
             myobservations['Cm'][nobs]=self.params.Cm[filtre]
             myobservations['dCm'][nobs]=dCm
             myobservations['finSeeing'][nobs]=finSeeing
@@ -434,7 +440,7 @@ class AnaMetric(BaseMetric):
             myobservations['Sigmab'][nobs]=Sigmab
             myobservations['katm_calc'][nobs]=katm
             myobservations['katm_opsim'][nobs]=self.params.kAtm[filtre] 
-                
+            """    
             #print 'Flux',time.time()-self.start_time
             if flux_SN >0:
                   
@@ -445,7 +451,8 @@ class AnaMetric(BaseMetric):
                 flatSed.multiplyFluxNorm(flux0)
                 mag_SN=-2.5 * np.log10(flux_SN / 3631.0)
                 
-                FWHMeff = SignalToNoise.FWHMgeom2FWHMeff(finSeeing)
+                #FWHMeff = SignalToNoise.FWHMgeom2FWHMeff(finSeeing)
+                FWHMeff=obs['FWHMeff']
                 photParams = PhotometricParameters(nexp=obs['visitExpTime']/15.)
                 
                 m5_calc=SignalToNoise.calcM5(flatSed,transmission.lsst_atmos_aerosol[filtre],transmission.lsst_system[filtre],photParams=photParams,FWHMeff=FWHMeff)
